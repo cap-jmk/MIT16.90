@@ -64,8 +64,8 @@ def integrate_forward_euler(grid, timestep, initial_velocity, function, numerica
     results = np.zeros(len(grid))
     results[0] = initial_velocity
     print("initial velocity is", initial_velocity)
-    for i in range(1, len(grid)-1):
-        results[i+1] = results[i] + timestep * numerical_method(prev_value = results[i],
+    for i in range(1, len(grid)):
+        results[i] = results[i-1] + timestep * numerical_method(prev_value = results[i],
                                                                 timestep= timestep,
                                                                 function=function)
     return results
@@ -82,7 +82,7 @@ def forward_euler(prev_value,  timestep, function):
     :return:
     :rtype:
     """
-    return  prev_value+ timestep * function(x_val=prev_value)
+    return  prev_value + timestep * function(x_val=prev_value)
 
 def calculate_function(x_val):
     """
@@ -136,7 +136,7 @@ def discretize_time(initial_value, end_value, step = 0.25):
     :return:
     :rtype:
     """
-    grid = np.arange(start= initial_value, stop=end_value, step=step)
+    grid = np.linspace(initial_value, end_value, int((end_value-initial_value)/step)+1)
     return grid
 
 def plot_results(grid, integration):
@@ -151,14 +151,5 @@ def plot_results(grid, integration):
     """
     plt.plot(grid, integration)
     plt.xlabel("Time t [s]")
-    plt.ylabel("Velocity v")
+    plt.ylabel("Velocity v [m/s]")
     plt.savefig("forward_euler.png", dpi=300)
-
-if __name__ == '__main__':
-    initial_time = 0
-    intial_velocity = 0.001
-    end_value = 25
-    timestep = 0.25
-    grid = discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
-    integration = integrate(grid, timestep=timestep, initial_velocity=intial_velocity)
-    plot_results(grid=grid, integration=integration)
