@@ -1,6 +1,6 @@
 import pytest
 import numpy as np
-from MITAerEngineering.fallingSphere import discretize_time, approximate_reynolds
+from MIT1690.fallingSphere import discretize_time, approximate_reynolds
 
 def test_grid():
     """
@@ -23,3 +23,17 @@ def test_reynolds():
     density, velocity, radius, mu_g = 9, 0.001, 0.01, 1.5E-5
     re = approximate_reynolds(density = density, velocity= velocity, radius=radius, mu_g=mu_g)
     assert re != 0
+
+def test_forward_euler():
+    """
+    Tests the forward Euler integration scheme
+    :return:
+    :rtype:
+    """
+
+def test_midpoint_rule():
+    """
+    Tests the midpoint rule
+    :return:
+    :rtype:
+    """
