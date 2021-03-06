@@ -64,8 +64,8 @@ def integrate_forward_euler(grid, timestep, initial_velocity, function, numerica
     results = np.zeros(len(grid))
     results[0] = initial_velocity
     print("initial velocity is", initial_velocity)
-    for i in range(1, len(grid)):
-        results[i] = results[i-1] + timestep * numerical_method(prev_value = results[i],
+    for i in range(0, len(grid)-1):
+        results[i+1] = numerical_method(prev_value = results[i],
                                                                 timestep= timestep,
                                                                 function=function)
     return results

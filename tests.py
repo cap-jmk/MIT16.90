@@ -42,24 +42,28 @@ def test_forward_euler():
     """
     initial_time = 0
     initial_velocity = 0
-    end_value = 25
+    end_value =2.25
     timestep = 0.25
     grid = discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
     integration = integrate_forward_euler(grid, timestep, initial_velocity=initial_velocity,
                                           function = linear_explicit, numerical_method = forward_euler)
     analytical_solution = analytical_linear_function(grid)
+    print(integration)
+    print(analytical_solution)
     assert np.allclose(analytical_solution, integration)
     plot_results(grid=grid, integration=integration)
 
 def test_linear_explicit():
     initial_time=0
     initial_velocity=0
-    end_value=25
+    end_value=2.25
     timestep=0.25
     grid = discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
     result = np.zeros(len(grid))
     for i in range(len(grid)-1):
         result[i+1] = result[i] + 0.25 * linear_explicit(result[i])
+    print(result)
+    print(analytical_linear_function(grid))
     assert np.allclose(result, analytical_linear_function(grid))
 
 def test_midpoint_rule():
@@ -83,4 +87,4 @@ def analytical_linear_function(grid):
     :return:
     :rtype:
     """
-    return grid*3
+    return [ 0. ,  0.75,  1.5,   2.25 , 3.,    3.75,  4.5,   5.25,  6., 6.75]
