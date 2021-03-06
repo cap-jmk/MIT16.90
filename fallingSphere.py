@@ -20,18 +20,19 @@ def integrate_midpoint_rule(grid, timestep, initial_velocity, function, numerica
     results=np.zeros(len(grid))
     results[0]=initial_velocity
     print("initial velocity is", initial_velocity)
-    for i in range(1, len(grid) - 1):
+    for i in range(0, len(grid) - 1):
         if i == 0:
             results[i + 1]=numerical_method_t0(prev_value=results[i],
                                             timestep=timestep,
                                             function=function)
         else:
             results[i + 1] = midpoint_rule(prev_value=results[i-1],
+                                           current_value = results[i],
                                            timestep=timestep,
                                            function=function)
     return results
 
-def midpoint_rule(prev_value,  timestep, function):
+def midpoint_rule(prev_value, current_value, timestep, function):
     """
     Just the formula to the midpoint rule
     :param prev_value: t_n-1 is something else than in forward euler, first script I see, ecplicitly stating this
@@ -43,7 +44,7 @@ def midpoint_rule(prev_value,  timestep, function):
     :return:
     :rtype:
     """
-    return prev_value *2*timestep*function(x_val =prev_value)
+    return prev_value + 2*timestep*function(x_val =current_value)
 
 def integrate_forward_euler(grid, timestep, initial_velocity, function, numerical_method):
     """
@@ -98,7 +99,8 @@ def calculate_function(x_val):
     mass_particle = 0.0038
     reynolds = approximate_reynolds(density=density, velocity=velocity, mu_g= mu_g, radius=radius)
     drag_coefficient = approximate_drag_coefficient(Re=reynolds)
-    return g - 1/(mass_particle*2) * approximate_D(density=density, radius=radius, velocity=velocity, drag_coefficient=drag_coefficient)
+    return g - 1/(mass_particle*2) * approximate_D(density=density, radius=radius, velocity=velocity,
+                                                   drag_coefficient=drag_coefficient)
 
 def approximate_drag_coefficient(Re):
     """
@@ -139,7 +141,7 @@ def discretize_time(initial_value, end_value, step = 0.25):
     grid = np.linspace(initial_value, end_value, int((end_value-initial_value)/step)+1)
     return grid
 
-def plot_results(grid, integration):
+def plot_results(grid, integration, file_name):
     """
 
     :param grid:
@@ -152,4 +154,4 @@ def plot_results(grid, integration):
     plt.plot(grid, integration)
     plt.xlabel("Time t [s]")
     plt.ylabel("Velocity v [m/s]")
-    plt.savefig("forward_euler.png", dpi=300)
+    plt.savefig(file_name, dpi=300)
