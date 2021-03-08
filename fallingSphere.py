@@ -155,3 +155,4 @@ def plot_results(grid, integration, file_name):
     plt.xlabel("Time t [s]")
     plt.ylabel("Velocity v [m/s]")
     plt.savefig(file_name, dpi=300)
+    plt.close()

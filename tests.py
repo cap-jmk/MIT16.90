@@ -1,61 +1,105 @@
 import pytest
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rc
 from MIT1690.fallingSphere import (discretize_time, approximate_reynolds, discretize_time,
-                                   integrate_forward_euler,integrate_midpoint_rule, plot_results,
+                                   integrate_forward_euler, integrate_midpoint_rule, plot_results,
                                    forward_euler, midpoint_rule)
+from MIT1690.accuracy import find_best_multistep, calculate_error, comparison_function, analytical_solution_comparison
+rc('font', **{'family':'serif','serif':['Palatino']})
+rc('text', usetex=True)
 
-def test_grid():
+def test_find_best_multistep():
     """
-    tests the evenly spaced grid
+
     :return:
     :rtype:
     """
-    initial_value = 0
-    end_value = 25
-    step = 0.25
-    grid = discretize_time(initial_value = initial_value, end_value=end_value, step=step)
-    print(grid)
-    compare = np.linspace(0, 25, int((end_value-initial_value)/step)+1)
-    assert np.allclose(grid, compare)
+    matrix=np.array([[-1, -1, 0, 0, ],
+                     [0, 1, 1, 1, ],
+                     [0, -1 / 2, 0, -1, ],
+                     [0, 1 / 6, 0, 1 / 2]])
+    b=np.array([1, 1, 1 / 2, 1 / 6])
+    result=find_best_multistep(matrix=matrix, b=b)
+    assert np.allclose(result[0], np.array([4., -5., 4., 2.])), "Result is not correct"
+    assert result[2] == 4, "Rank is not correct"
+    assert np.allclose(result[3],
+                       np.array([2.13460551, 1.23108946, 0.67337816, 0.04709258])), "Residuals are not correct"
 
-def test_reynolds():
+def test_comparison_function():
     """
-    Tests if the Reynolds function works
+
     :return:
     :rtype:
     """
-    density, velocity, radius, mu_g = 9, 0.001, 0.01, 1.5E-5
-    re = approximate_reynolds(density = density, velocity= velocity, radius=radius, mu_g=mu_g)
-    assert re != 0
-
+    grid = [0.1, 0.2, 0.3]
+    vals = []
+    for point in grid:
+        vals.append(comparison_function(point))
+    assert np.allclose(np.array(vals), np.array([-0.1**(2), -0.2**(2), -0.3**(2)]))
+def test_forward_euler_accuracy():
+    """
+    Tests the accuracy of forward Euler and plots the results
+    :return:
+    :rtype:
+    """
+    initial_time=0.001
+    initial_velocity=1
+    end_value=10
+    timesteps=[0.1, 0.2, 0.4]
+    markers = [".", "1", "h"]
+    grids=[]
+    integrations=[]
+    analytical_solutions=[]
+    for i in range(len(timesteps)):
+        grids.append(discretize_time(initial_value=initial_time, end_value=end_value, step=timesteps[i]))
+        integrations.append(integrate_forward_euler(grids[i], timesteps[i], initial_velocity=initial_velocity,
+                                                    function=comparison_function, numerical_method=forward_euler))
+        analytical_solutions.append(analytical_solution_comparison(grids[i]))
+        plt.plot(grids[i], integrations[i], markers[i], label= "$\Delta t$ = "+str(timesteps[i]))
+    plt.plot(grids[i], analytical_solutions[i], color = "black", label="Analytical solution")
+    plt.legend()
+    plt.xlabel("t [s]")
+    plt.ylabel("v  [m/s]")
+    plt.savefig("forward_euler_compare_res.png", dpi=300)
+    plt.close()
+    for i in range(len(integrations)):
+        plt.plot(grids[i], calculate_error(integrations[i], analytical_solutions[i]), markers[i],
+                 label= "$\Delta t$ = "+str(timesteps[i]))
+    plt.xlabel("t [s]")
+    plt.ylabel("Integration error  [m/s]")
+    plt.legend()
+    plt.savefig("forward_euler_errors.png", dpi=300)
 def test_forward_euler():
     """
     Tests the forward Euler integration scheme
     :return:
     :rtype:
     """
-    initial_time = 0
-    initial_velocity = 0
-    end_value =2.25
-    timestep = 0.25
-    grid = discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
-    integration = integrate_forward_euler(grid, timestep, initial_velocity=initial_velocity,
-                                          function = linear_explicit, numerical_method = forward_euler)
-    analytical_solution = analytical_linear_function()
+    initial_time=0
+    initial_velocity=0
+    end_value=2.25
+    timestep=0.25
+    grid=discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
+    integration=integrate_forward_euler(grid, timestep, initial_velocity=initial_velocity,
+                                        function=linear_explicit, numerical_method=forward_euler)
+    analytical_solution=analytical_linear_function()
     assert np.allclose(analytical_solution, integration)
-    plot_results(grid=grid, integration=integration, file_name = "forward_euler.png")
+    plot_results(grid=grid, integration=integration, file_name="forward_euler.png")
+
 
 def test_linear_explicit():
     initial_time=0
     initial_velocity=0
     end_value=2.25
     timestep=0.25
-    grid = discretize_time(initial_value=initial_time, end_value=end_value, step=timestep)
-    result = np.zeros(len(grid))
-    result[0] = initial_velocity
-    for i in range(len(grid)-1):
-        result[i+1] = result[i] + 0.25 * linear_explicit(result[i])
+    grid=discretize_time(initial_value=initial_time, end_value=end_value, step=timestep)
+    result=np.zeros(len(grid))
+    result[0]=initial_velocity
+    for i in range(len(grid) - 1):
+        result[i + 1]=result[i] + 0.25 * linear_explicit(result[i])
     assert np.allclose(result, analytical_linear_function())
+
 
 def test_midpoint_rule():
     """
@@ -63,17 +107,44 @@ def test_midpoint_rule():
     :return:
     :rtype:
     """
-    initial_time = 0
-    initial_velocity = 0
-    end_value =2.25
-    timestep = 0.25
-    grid = discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
-    integration = integrate_midpoint_rule(grid, timestep, initial_velocity=initial_velocity,
-                                          function = linear_explicit, numerical_method_t0 = forward_euler)
-    analytical_solution = analytical_linear_function()
+    initial_time=0
+    initial_velocity=0
+    end_value=2.25
+    timestep=0.25
+    grid=discretize_time(initial_value=initial_time, end_value=end_value, step=0.25)
+    integration=integrate_midpoint_rule(grid, timestep, initial_velocity=initial_velocity,
+                                        function=linear_explicit, numerical_method_t0=forward_euler)
+    analytical_solution=analytical_linear_function()
     print(integration)
     assert np.allclose(analytical_solution, integration)
-    plot_results(grid=grid, integration=integration, file_name = "midpoint_rule.png")
+    plot_results(grid=grid, integration=integration, file_name="midpoint_rule.png")
+
+
+def test_grid():
+    """
+    tests the evenly spaced grid
+    :return:
+    :rtype:
+    """
+    initial_value=0
+    end_value=25
+    step=0.25
+    grid=discretize_time(initial_value=initial_value, end_value=end_value, step=step)
+    print(grid)
+    compare=np.linspace(0, 25, int((end_value - initial_value) / step) + 1)
+    assert np.allclose(grid, compare)
+
+
+def test_reynolds():
+    """
+    Tests if the Reynolds function works
+    :return:
+    :rtype:
+    """
+    density, velocity, radius, mu_g=9, 0.001, 0.01, 1.5E-5
+    re=approximate_reynolds(density=density, velocity=velocity, radius=radius, mu_g=mu_g)
+    assert re != 0
+
 
 def linear_explicit(x_val):
     """
@@ -83,10 +154,11 @@ def linear_explicit(x_val):
     """
     return 3
 
+
 def analytical_linear_function():
     """
     Provides a simple analytical test for the numerical schemes
     :return:
     :rtype:
     """
-    return [ 0. ,  0.75,  1.5,   2.25 , 3.,    3.75,  4.5,   5.25,  6., 6.75]
+    return [0., 0.75, 1.5, 2.25, 3., 3.75, 4.5, 5.25, 6., 6.75]
