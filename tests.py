@@ -5,12 +5,49 @@ from matplotlib import rc
 from MIT1690.fallingSphere import (discretize_time, approximate_reynolds, discretize_time,
                                    integrate_forward_euler, integrate_midpoint_rule, plot_results,
                                    forward_euler, midpoint_rule)
-from MIT1690.accuracy import (find_best_multistep, calculate_error, comparison_function, analytical_solution_comparison,
+from MIT1690.investigating import (find_best_multistep, calculate_error, comparison_function, analytical_solution_comparison,
                               integrate_best_two_point_multistep)
 from MIT1690.pendulum import (integrate_pendulum_feu, integrate_pendulum_mpr, model)
 
+from MIT1690.implicit import (secant_method, implicit_euler)
 rc('font', **{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
+
+
+
+
+def test_newton_raphson():
+    """
+    Test needs to test a known example of the newton raphson method
+    :return:
+    :rtype:
+    """
+    pass
+
+def test_secant_method():
+    """
+    The specs are: Must return correct jacobian at the points for an analytical functions with known jacobian at the
+    point
+    :return:
+    :rtype:
+    """
+
+    def func1(old_guess):
+        """
+        Helper function
+        :return:
+        :rtype:
+        """
+        return -1000 * old_guess
+
+    def func2(old_guess):
+        return old_guess[0] + np.sin(100*old_guess[1])
+    initial_guess = 1
+    initial_guess2 = 0
+    a = secant_method(old_guess=initial_guess, func = func1)
+    b = secant_method(old_guess = [a,initial_guess2], func=func2)
+    assert np.allclose(a, -1000)
+    assert np.allclose(b, [1,100])
 
 
 def test_pendulum_midpoint_rule():
@@ -115,6 +152,14 @@ def test_comparison_function():
     for point in grid:
         vals.append(comparison_function(point))
     assert np.allclose(np.array(vals), np.array([-0.1**(2), -0.2**(2), -0.3**(2)]))
+
+def forward_euler_eigval_stability():
+    """
+
+    :return:
+    :rtype:
+    """
+
 def test_forward_euler_accuracy():
     """
     Tests the accuracy of forward Euler and plots the results
