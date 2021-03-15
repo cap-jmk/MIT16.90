@@ -9,45 +9,11 @@ from MIT1690.investigating import (find_best_multistep, calculate_error, compari
                               integrate_best_two_point_multistep)
 from MIT1690.pendulum import (integrate_pendulum_feu, integrate_pendulum_mpr, model)
 
-from MIT1690.implicit import (secant_method, implicit_euler)
 rc('font', **{'family':'serif','serif':['Palatino']})
 rc('text', usetex=True)
 
 
 
-
-def test_newton_raphson():
-    """
-    Test needs to test a known example of the newton raphson method
-    :return:
-    :rtype:
-    """
-    pass
-
-def test_secant_method():
-    """
-    The specs are: Must return correct jacobian at the points for an analytical functions with known jacobian at the
-    point
-    :return:
-    :rtype:
-    """
-
-    def func1(old_guess):
-        """
-        Helper function
-        :return:
-        :rtype:
-        """
-        return -1000 * old_guess
-
-    def func2(old_guess):
-        return old_guess[0] + np.sin(100*old_guess[1])
-    initial_guess = 1
-    initial_guess2 = 0
-    a = secant_method(old_guess=initial_guess, func = func1)
-    b = secant_method(old_guess = [a,initial_guess2], func=func2)
-    assert np.allclose(a, -1000)
-    assert np.allclose(b, [1,100])
 
 
 def test_pendulum_midpoint_rule():

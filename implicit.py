@@ -1,15 +1,9 @@
 import numpy as np
 from MIT1690.fallingSphere import discretize_time, forward_euler
 from scipy import optimize
+import numba
 
 
-def secant_method(old_guess, func, epsilon = 10e-6):
-    """
-    Calculate the sekant method for a function to obtain the jacobian may use forward finite differences.
-    :return:
-    :rtype:
-    """
-    return optimize.approx_fprime(old_guess, func, epsilon = epsilon)
 
 def implicit_euler(initial_conditions, time_interval, time_step, evaluation_function):
     """
@@ -44,6 +38,14 @@ def backward_euler(timestep, val, func):
     t_old = val
     t_new = newtons_method(derivative_fun=func, initial_guess=t_old)
 
+def secant_method(points, func, epsilon = 10e-6):
+    """
+    Calculate the sekant method for a function to obtain the jacobian may use forward finite differences.
+    :return:
+    :rtype:
+    """
+    return optimize.approx_fprime(points, func, epsilon = epsilon)
+
 def newtons_method(initial_guess,
                    system_of_odes,
                    derivative_fun=secant_method ,
@@ -71,13 +73,26 @@ def newtons_method(initial_guess,
     new_val = numerical_itegrator(prev_value=initial_guess,  timestep = time_step, function=derivative_fun)
     err = np.abs(new_val, initial_guess)
     while err <= tol:
-        old_guess = t_new.copy()
-        t_new = old_guess - (numerical_itegrator(prev_value=old_guess,
-                                                 timestep = time_step,
-                                                 function=derivative_fun)/derivative_fun(old_guess))
-        err = np.abs(t_new-initial_guess)
-    return t_new
+        old_guess = new_val.copy()
+        new_val = old_guess - np.linalg.inv((np.eye(np.shape(system_of_odes))-derivative_fun(system_of_odes)))@(
+            numerical_itegrator(prev_value=old_guess,
+                                timestep = time_step,
+                                function=derivative_fun))
+        err = np.abs(new_val-old_guess)
+    return new_val
 
+def jacobian(system_of_odes, points, approximator = secant_method):
+    """
+    Approximates the Jacobian of a given System of ODEs
+    :param system_of_odes: system of ODEs
+    :type system_of_odes: array of objects
+    :return: The Jacobian of the given system of ODEs
+    :rtype: np.array
+    """
+    jac = np.zeros((len(points),len(points)))
+    for i in range(len(points)):
+        jac[i, :] = approximator(func = system_of_odes[i], points = points)
+    return jac
 
 def func(old_guess):
     """
